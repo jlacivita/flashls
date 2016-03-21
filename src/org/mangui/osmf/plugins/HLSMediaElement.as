@@ -130,6 +130,9 @@
             var ccTrait : HLSClosedCaptionsTrait = new HLSClosedCaptionsTrait(_hls);
             addTrait(HLSMediaTraitType.CLOSED_CAPTIONS, ccTrait);
 
+            var id3Trait : HLSID3Trait = new HLSID3Trait(_hls);
+            addTrait(HLSMediaTraitType.ID3, id3Trait);
+
             var bufferTrait : BufferTrait = new HLSBufferTrait(_hls);
             addTrait(MediaTraitType.BUFFER, bufferTrait);
 
