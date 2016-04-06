@@ -41,7 +41,7 @@ package org.mangui.hls.utils {
         /** Log a message to the console. **/
         private static function outputlog(level : String, message : String) : void {
             if (ExternalInterface.available)
-                ExternalInterface.call('console.log', level + message);
+                ExternalInterface.call('console.log', '[flashls] ' + level + message);
             else trace(level + message);
         }
     };

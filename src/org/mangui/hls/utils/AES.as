@@ -2,7 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
  package org.mangui.hls.utils {
-    import flash.utils.getTimer;
+ import flash.events.TimerEvent;
+ import flash.utils.Timer;
+ import flash.utils.getTimer;
     import flash.display.DisplayObject;
     import flash.utils.ByteArray;
     import flash.events.Event;
@@ -34,6 +36,8 @@
         /** display object used for ENTER_FRAME listener */
         private var _displayObject : DisplayObject;
 
+        private var _decryptTimer : Timer;
+
         public function AES(displayObject : DisplayObject, key : ByteArray, iv : ByteArray, notifyprogress : Function, notifycomplete : Function) {
             // _keyArray = key;
             _key = new FastAESKey(key);
@@ -58,9 +62,35 @@
             _data.position = _writePosition;
             _data.writeBytes(data);
             if (_writePosition == 0) {
-                _displayObject.addEventListener(Event.ENTER_FRAME, _decryptTimer);
+                startDecryptTimer();
             }
             _writePosition += data.length;
+        }
+        private function startDecryptTimer():void
+        {
+            if (_displayObject)
+            {
+                _displayObject.addEventListener(Event.ENTER_FRAME, _decryptTick, false, 0, true);
+            }
+            else if (!_decryptTimer)
+            {
+                _decryptTimer = new Timer(20);
+                _decryptTimer.addEventListener(TimerEvent.TIMER, _decryptTick, false, 0, true);
+                _decryptTimer.start();
+            }
+        }
+        private function endDecryptTimer():void
+        {
+            if (_displayObject)
+            {
+                _displayObject.removeEventListener(Event.ENTER_FRAME, _decryptTick)
+            }
+            if (_decryptTimer)
+            {
+                _decryptTimer.stop();
+                _decryptTimer.removeEventListener(TimerEvent.TIMER, _decryptTick);
+                _decryptTimer = null;
+            }
         }
 
         public function notifycomplete() : void {
@@ -71,10 +101,10 @@
         }
 
         public function cancel() : void {
-            _displayObject.removeEventListener(Event.ENTER_FRAME, _decryptTimer);
+            endDecryptTimer();
         }
 
-        private function _decryptTimer(e : Event) : void {
+        private function _decryptTick(e : Event) : void {
             var start_time : int = getTimer();
             var decrypted : Boolean;
             do {
@@ -114,7 +144,7 @@
                     }
                     // callback
                     _complete();
-                    _displayObject.removeEventListener(Event.ENTER_FRAME, _decryptTimer);
+                    endDecryptTimer();
                 }
                 return false;
             }
@@ -168,6 +198,7 @@
         }
 
         public function destroy() : void {
+            endDecryptTimer();
             _key.dispose();
             // _key = null;
         }

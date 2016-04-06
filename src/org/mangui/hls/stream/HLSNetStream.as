@@ -185,6 +185,9 @@ package org.mangui.hls.stream {
                         return;
                     } else if (buffer <= 0.1 && !reachedEnd) {
                         // playing and buffer <= 0.1 and not reachedEnd and not EOS, pause playback
+                        CONFIG::LOGGING {
+                            Log.warn("buffer <= 0.1 && not at end... pausing.");
+                        }
                         super.pause();
                         // low buffer condition and play state. switch to play buffering state
                         _setPlaybackState(HLSPlayStates.PLAYING_BUFFERING);
@@ -193,8 +196,13 @@ package org.mangui.hls.stream {
                 }
                 // if buffer len is below lowBufferLength, get into buffering state
                 if (!reachedEnd && !liveLoadingStalled && buffer < _bufferThresholdController.lowBufferLength) {
+                    CONFIG::LOGGING {
+                        Log.warn("buffer len is below lowBufferLength: " + buffer + " < " + _bufferThresholdController.lowBufferLength);
+                    }
+
                     if (_playbackState == HLSPlayStates.PLAYING) {
                         // low buffer condition and play state. switch to play buffering state
+                        super.pause();
                         _setPlaybackState(HLSPlayStates.PLAYING_BUFFERING);
                     } else if (_playbackState == HLSPlayStates.PAUSED) {
                         // low buffer condition and pause state. switch to paused buffering state
@@ -202,10 +210,10 @@ package org.mangui.hls.stream {
                     }
                 }
                 // if buffer len is above minBufferLength, get out of buffering state
-                if (buffer >= minBufferLength || reachedEnd || liveLoadingStalled) {
+                else if (buffer >= minBufferLength || reachedEnd || liveLoadingStalled) {
                     if (_playbackState == HLSPlayStates.PLAYING_BUFFERING) {
                         CONFIG::LOGGING {
-                            Log.debug("resume playback, minBufferLength/bufferLength:"+minBufferLength.toFixed(2) + "/" + buffer.toFixed(2));
+                            Log.info("resume playback, minBufferLength/bufferLength:"+minBufferLength.toFixed(2) + "/" + buffer.toFixed(2));
                         }
                         // resume playback in case it was paused, this can happen if buffer was in really low condition (less than 0.1s)
                         super.resume();
@@ -253,6 +261,9 @@ package org.mangui.hls.stream {
                 super.play(null);
                 super.appendBytesAction(NetStreamAppendBytesAction.RESET_SEEK);
                 // immediatly pause NetStream, it will be resumed when enough data will be buffered in the NetStream
+                CONFIG::LOGGING {
+                    Log.warn("immediatly pause NetStream, it will be resumed when enough data is buffered in the NetStream");
+                }
                 super.pause();
                 // var otherCounter : int = 0;
                 // for each (var tagBuffer0 : FLVTag in tags) {
@@ -276,7 +287,7 @@ package org.mangui.hls.stream {
                 // }
             }
             // append all tags
-            //var otherCounter : int = 0;
+            //var otherCounter : int = 0; 
             for each (var tagBuffer : FLVTag in tags) {
                 // switch(tagBuffer.type) {
                 //     case FLVTag.AAC_HEADER:
@@ -321,7 +332,7 @@ package org.mangui.hls.stream {
         private function _setPlaybackState(state : String) : void {
             if (state != _playbackState) {
                 CONFIG::LOGGING {
-                    Log.debug('[PLAYBACK_STATE] from ' + _playbackState + ' to ' + state);
+                    Log.info('[PLAYBACK_STATE] from ' + _playbackState + ' to ' + state);
                 }
                 _playbackState = state;
                 _hls.dispatchEvent(new HLSEvent(HLSEvent.PLAYBACK_STATE, _playbackState));
@@ -332,7 +343,7 @@ package org.mangui.hls.stream {
         private function _setSeekState(state : String) : void {
             if (state != _seekState) {
                 CONFIG::LOGGING {
-                    Log.debug('[SEEK_STATE] from ' + _seekState + ' to ' + state);
+                    Log.info('[SEEK_STATE] from ' + _seekState + ' to ' + state);
                 }
                 _seekState = state;
                 _hls.dispatchEvent(new HLSEvent(HLSEvent.SEEK_STATE, _seekState));
@@ -449,6 +460,9 @@ package org.mangui.hls.stream {
             /* always pause NetStream while seeking, even if we are in play state
              * in that case, NetStream will be resumed during next call to appendTags()
              */
+            CONFIG::LOGGING {
+                Log.info("always pause NetStream while seeking, even if we are in play state");
+            }
             super.pause();
             _timer.start();
         }
