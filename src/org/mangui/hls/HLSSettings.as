@@ -97,7 +97,7 @@ package org.mangui.hls {
          *
          * Default is 3
          */
-        public static var lowBufferLength : Number = 3;
+        public static var lowBufferLength : Number = 2;
 
         /**
          * mediaTimeUpdatePeriod

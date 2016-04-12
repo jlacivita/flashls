@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.mangui.hls.controller {
+    import org.mangui.hls.constant.HLSTypes;
     import org.mangui.hls.constant.HLSLoaderTypes;
     import org.mangui.hls.event.HLSEvent;
     import org.mangui.hls.event.HLSLoadMetrics;
@@ -52,7 +53,12 @@ package org.mangui.hls.controller {
 
         private function _manifestLoadedHandler(event : HLSEvent) : void {
             _targetduration = event.levels[_hls.startLevel].targetduration;
-            _minBufferLength = _targetduration;
+            if (_hls.type === HLSTypes.VOD) {
+                _minBufferLength = _targetduration;
+            } else {
+                /* Live must download a variant and a fragment, and sometimes variants aren't up to date */
+                _minBufferLength = 2*_targetduration;
+            }
         };
 
         private function _fragmentLoadedHandler(event : HLSEvent) : void {
@@ -60,7 +66,15 @@ package org.mangui.hls.controller {
             // only monitor main fragment metrics for buffer threshold computing
             if(metrics.type == HLSLoaderTypes.FRAGMENT_MAIN) {
                 /* set min buf len to be the time to process a complete segment, using current processing rate */
-                _minBufferLength = metrics.processing_duration * (_targetduration / metrics.duration);
+                /* make sure it never goes down for live (it can go up though) */
+                var calculatedBufferLength:Number = metrics.processing_duration * (_targetduration / metrics.duration);
+
+                //if (_hls.type === HLSTypes.LIVE) {
+                    calculatedBufferLength = Math.min(calculatedBufferLength, 2*_targetduration);
+                //}
+
+                _minBufferLength = calculatedBufferLength;
+
                 // avoid min > max
                 if (HLSSettings.maxBufferLength) {
                     _minBufferLength = Math.min(HLSSettings.maxBufferLength, _minBufferLength);

@@ -368,7 +368,7 @@ package org.mangui.hls.loader {
             if (_loadLevel != event.level || _levels[_loadLevel].fragments.length == 0) {
                 _loadLevel = event.level;
                 CONFIG::LOGGING {
-                    Log.debug("switch to level " + _loadLevel);
+                    Log.info("Requesting switch to level " + _loadLevel);
                 }
                 if (type == HLSTypes.LIVE || _levels[_loadLevel].fragments.length == 0) {
                     _closed = false;
