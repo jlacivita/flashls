@@ -144,10 +144,7 @@ package org.mangui.hls.stream {
                     order at the nominal playback rate), the client SHOULD NOT
                     choose a segment which starts less than three target durations from
                     the end of the Playlist file */
-                /* in experience, we see that Safari picks the 5th from the last, and
-                   this solves lots of problems with live streams where the variants are not
-                   all updated in sync, so setting to Math.max(0, duration-5*targetduration) */
-                _seekPositionRequested = Math.max(loadLevel.duration / 4, loadLevel.duration - 5 * loadLevel.targetduration);
+                _seekPositionRequested = Math.max(0, loadLevel.duration - 3 * loadLevel.averageduration);
             } else {
                 _seekPositionRequested = Math.min(Math.max(position, 0), maxPosition);
             }
