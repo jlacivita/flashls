@@ -10,8 +10,6 @@
     import org.mangui.hls.demux.ID3Tag;
     import org.mangui.osmf.plugins.events.HLSID3Event;
 
-    import flash.external.ExternalInterface;
-
     CONFIG::LOGGING {
     import org.mangui.hls.utils.Log;
     }
@@ -20,35 +18,27 @@
         private var _hls : HLS;
 
         public function HLSID3Trait(hls : HLS) {
-            ExternalInterface.call("console.log", "HLSID3Trait");
-
             CONFIG::LOGGING {
             Log.debug("HLSID3Trait()");
             }
             super(HLSMediaTraitType.ID3);
 
             _hls = hls;
-            _hls.addEventListener(HLSEvent.FRAGMENT_PLAYING, _fragmentPlayingHander);
+            _hls.addEventListener(HLSEvent.ID3_UPDATED, _id3UpdatedHandler);
         }
 
         override public function dispose() : void {
             CONFIG::LOGGING {
             Log.debug("HLSID3Trait:dispose");
             }
-            _hls.removeEventListener(HLSEvent.FRAGMENT_PLAYING, _fragmentPlayingHander);
+            _hls.removeEventListener(HLSEvent.FRAGMENT_PLAYING, _id3UpdatedHandler);
             super.dispose();
         }
 
         /** Update playback position/duration **/
-        private function _fragmentPlayingHander(event : HLSEvent) : void {
-            var id3s : Array = (event.playMetrics ? event.playMetrics.id3tag_list : []);
-            ExternalInterface.call("console.log", "ID3: fragmentPlaying " + id3s.length);
-
-            for (var i=0; i<id3s.length; i++)
-            {
-                ExternalInterface.call("console.log", "ID3: " + id3s[i].data);
-                dispatchEvent(new HLSID3Event(HLSID3Event.ID3, false, false, id3s[i]));
-            }
+        private function _id3UpdatedHandler(event : HLSEvent) : void {
+            var id3 : String = event.ID3Data;
+            dispatchEvent(new HLSID3Event(HLSID3Event.ID3, false, false, id3));
         }
     }
 }

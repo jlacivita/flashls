@@ -5,12 +5,12 @@ package org.mangui.osmf.plugins.events
 	public class HLSID3Event extends Event
 	{
 		public static const ID3:String	= "id3";
-		public var id3s:Array;
+		public var data:String;
 
-		public function HLSID3Event(type:String, bubbles:Boolean=false, cancelable:Boolean=false, id3s:Array=null)
+		public function HLSID3Event(type:String, bubbles:Boolean=false, cancelable:Boolean=false, data:String=null)
 		{
 			super(type, bubbles, cancelable);
-			this.id3s = id3s;
+			this.data = data;
 		}
 	}
 }
